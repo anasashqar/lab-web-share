@@ -1,0 +1,42 @@
+/**
+ * App.jsx — القشرة العليا: تبديل بسيط بين الشاشة الرئيسية والتجربتين
+ * (الطفو / الأس الهيدروجيني) عبر حالة عرض واحدة، بلا مكتبة توجيه خارجية
+ * (أبسط وأخف للعمل دون اتصال). الحالة تُزامَن مع hash المتصفح ليعمل زر
+ * "رجوع" في المتصفح ويمكن مشاركة رابط تجربة مباشرة.
+ */
+import { useEffect, useState } from "react";
+import HomeScreen from "./HomeScreen.jsx";
+import BuoyancyApp from "./BuoyancyApp.jsx";
+import PhApp from "./ph/PhApp.jsx";
+import StaticApp from "./static/StaticApp.jsx";
+
+const ROUTES = new Set(["buoyancy", "ph", "static"]);
+
+function viewFromHash() {
+  const h = window.location.hash.replace(/^#\/?/, "");
+  return ROUTES.has(h) ? h : "home";
+}
+
+export default function App() {
+  const [view, setView] = useState(viewFromHash);
+
+  useEffect(() => {
+    const onHashChange = () => setView(viewFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  function open(key) {
+    window.location.hash = `/${key}`;
+    setView(key);
+  }
+  function home() {
+    window.location.hash = "";
+    setView("home");
+  }
+
+  if (view === "buoyancy") return <BuoyancyApp onHome={home} />;
+  if (view === "ph") return <PhApp onHome={home} />;
+  if (view === "static") return <StaticApp onHome={home} />;
+  return <HomeScreen onOpen={open} />;
+}
